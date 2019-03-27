@@ -20,17 +20,13 @@ import java.util.ArrayList;
 
 
 public class ViewPagerFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
     public ViewPagerFragment() {
-        // Required empty public constructor
+
     }
 
     public static ViewPagerFragment newInstance(String param1, String param2) {
@@ -58,8 +54,7 @@ public class ViewPagerFragment extends Fragment {
     TextView textView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_view_pager, container, false);
         textView = v.findViewById(R.id.textView);
         textView.setText("Swipe To see the details");
@@ -69,6 +64,7 @@ public class ViewPagerFragment extends Fragment {
         newFragment = new BookDetailsFragment();
         viewPager = v.findViewById(R.id.viewPager);
         pagerAdapter = new PagerAdapter(getChildFragmentManager());
+
         for(int j = 0; j < bookList.length; j++){
             newFragment = BookDetailsFragment.newInstance(bookList[j]);
             pagerAdapter.add(newFragment);
@@ -78,14 +74,12 @@ public class ViewPagerFragment extends Fragment {
     }
 
     class PagerAdapter extends FragmentStatePagerAdapter{
-
         ArrayList<BookDetailsFragment> pagerFragments;
 
         public PagerAdapter(FragmentManager fm) {
             super(fm);
             pagerFragments = new ArrayList<>();
         }
-
         public void add(BookDetailsFragment fragment){
             pagerFragments.add(fragment);
         }
@@ -94,7 +88,6 @@ public class ViewPagerFragment extends Fragment {
         public Fragment getItem(int i) {
             return pagerFragments.get(i);
         }
-
         @Override
         public int getCount() {
             return pagerFragments.size();
