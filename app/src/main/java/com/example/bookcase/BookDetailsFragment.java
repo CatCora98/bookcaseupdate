@@ -1,19 +1,19 @@
 package com.example.bookcase;
 
-
 import android.content.Context;
-import android.graphics.Color;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -21,149 +21,120 @@ import com.squareup.picasso.Picasso;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
-
-
-/**
- * A simple {@link Fragment} subclass.
- */
 public class BookDetailsFragment extends Fragment {
+
+    //Name of book
+    private Book book;
+    SeekBar progressBar;
+
+    AudiobookService audiobookService;
+    boolean audioBound = false;
 
     public BookDetailsFragment() {
         // Required empty public constructor
     }
 
-
-    Context c;
-
-    TextView tv;
-    ImageView imageView;
-    String bookSelected;
-    String title;
-    String author;
-    String publish;
-    public static final String BOOK_KEY = "myBook";
-    Book pagerBooks;
-    ImageButton playBTN;
-    ImageButton pauseBTN;
-    ImageButton stopBTN;
-    SeekBar seekBar;
-    ProgressBar progressBar;
-    TextView progressText;
-
-    private BookDetailsInterface mListener;
-
-    public static BookDetailsFragment newInstance(Book bookList) {
-        BookDetailsFragment fragment = new BookDetailsFragment();
+    public static BookDetailsFragment newInstance(Book book) {
+        BookDetailsFragment bdf = new BookDetailsFragment();
         Bundle bundle = new Bundle();
-        bundle.putParcelable(BOOK_KEY, bookList);
-        fragment.setArguments(bundle);
-        return fragment;
+        bundle.putParcelable("book", book);
+        bdf.setArguments(bundle);
+        return bdf;
+
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getArguments() != null){
-            pagerBooks = getArguments().getParcelable(BOOK_KEY);
+
+        if (getArguments() != null) {
+            this.book = (Book) getArguments().getParcelable("book");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_book_details, container, false);
-        tv = view.findViewById(R.id.bookTitle);
-        imageView = view.findViewById(R.id.bookImage);
+        // Inflate the layout for this fragment
+        View v = inflater.inflate(R.layout.fragment_book_details, container, false);
 
-        playBTN = view.findViewById(R.id.playButton);
-        pauseBTN = view.findViewById(R.id.pauseButton);
-        stopBTN = view.findViewById(R.id.stopButton);
-        seekBar = view.findViewById(R.id.seekBar);
-        progressBar = view.findViewById(R.id.progressBar);
-        progressText = view.findViewById(R.id.progressText);
+        TextView bookTitle = v.findViewById(R.id.bookTitle);
+        ImageView bookCover = v.findViewById(R.id.bookCover);
+        TextView bookAuthor = v.findViewById(R.id.bookAuthor);
+        TextView bookPublishDate = v.findViewById(R.id.bookPublishDate);
+        progressBar = v.findViewById(R.id.progressBar);
+        Button pauseButton = v.findViewById(R.id.pauseButton);
+        final Button playButton = v.findViewById(R.id.playButton);
+        Button stopButton = v.findViewById(R.id.stopButton);
 
-        if(getArguments() != null) {
-            displayBook(pagerBooks);
+        progressBar.setMax(book.getDuration());
+        //((audioControl)getActivity()).setProgress();
+
+        if (book != null) {
+            bookTitle.setText(book.getTitle());
+            bookTitle.setTextSize(25);
+            Picasso.get().load(book.getCoverURL()).into(bookCover);
+            bookAuthor.setText(book.getAuthor());
+            bookPublishDate.setText(String.valueOf(book.getPublished()));
         }
 
-        return view;
-    }
-
-    public void displayBook(final Book bookObj){
-        author = bookObj.getAuthor();
-        title = bookObj.getTitle(); publish = bookObj.getPublished();
-        tv.setText(" \"" + title + "\" "); tv.append(" " + author); tv.append(" " + publish);
-        tv.setTextSize(30);
-        tv.setTextColor(Color.BLACK);
-        String imageURL = bookObj.getCoverURL();
-        Picasso.get().load(imageURL).into(imageView);
-
-        playBTN.setOnClickListener(new View.OnClickListener() {
+        playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((BookDetailsInterface)c).playBook(bookObj.getId());
+                ((audioControl) getActivity()).stopAudio();
+                ((audioControl) getActivity()).playAudio(book.getId());
+            }
+        });
+        pauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((audioControl) getActivity()).pauseAudio();
+
+            }
+        });
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((audioControl) getActivity()).stopAudio();
             }
         });
 
-        pauseBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((BookDetailsInterface)c).pauseBook();
-            }
-        });
 
-        stopBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((BookDetailsInterface)c).stopBook();
-            }
-        });
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                progressBar.setProgress(progress);
-                ((BookDetailsInterface)c).seekBook(progress);
-                progressText.setText(" " + progress + "%");
+                if (fromUser) {
+                    ((audioControl) getActivity()).seekToAudio(progress);
+                    Log.d("progress", Integer.toString(progress));
+                }
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                //not needed
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //not needed
             }
         });
+
+        return v;
+
     }
 
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof BookListFragment.BookInterface) {
-            mListener = (BookDetailsInterface) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-        this.c = context;
+    public SeekBar getProgressBar() {
+        return progressBar;
     }
 
-    public interface BookDetailsInterface{
-        void playBook(int id);
-        void pauseBook();
-        void stopBook();
-        void seekBook(int position);
+    public interface audioControl {
+        void pauseAudio();
+
+        void playAudio(int bookId);
+
+        void stopAudio();
+
+        void seekToAudio(int position);
+
     }
-
-
-
-
-
 }

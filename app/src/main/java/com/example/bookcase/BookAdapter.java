@@ -1,33 +1,38 @@
 package com.example.bookcase;
 
+
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class BookAdapter extends BaseAdapter implements Filterable {
+public class BookAdapter extends BaseAdapter {
 
-    Context c;
-    ArrayList<Book> books ;
+    public Context context;
+    public JSONArray jsonArray;
 
-    public BookAdapter(Context context, ArrayList<Book> books) {
-        this.c = context;
-        this.books = books;
+    public BookAdapter(Context context, JSONArray jsonArray) {
+        this.context = context;
+        this.jsonArray = jsonArray;
     }
-
-    @Override
     public int getCount() {
-        return books.size();
+        return jsonArray.length();
     }
 
     @Override
-    public Object getItem(int position) {
-        return books.get(position);
+    public JSONObject getItem(int position) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject = jsonArray.getJSONObject(position);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 
     @Override
@@ -37,15 +42,16 @@ public class BookAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
-        TextView tv = new TextView(c);
-        tv.setText(books.get(position).getTitle());
-        tv.setTextSize(24);
-        return tv;
+        TextView textView = new TextView(context);
+        try {
+            textView.setText(jsonArray.getJSONObject(position).getString("title"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return textView;
     }
 
-    @Override
-    public Filter getFilter() {
-        return null;
+    public void setJsonArray(JSONArray jsonArray) {
+        this.jsonArray = jsonArray;
     }
 }

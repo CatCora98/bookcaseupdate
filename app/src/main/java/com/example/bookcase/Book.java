@@ -1,5 +1,8 @@
 package com.example.bookcase;
 
+
+
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -10,22 +13,35 @@ public class Book implements Parcelable {
     private int id;
     private String title;
     private String author;
+    private int published;
     private String coverURL;
-    private String published;
-    public int duration;
+    private int duration;
 
-    public Book(JSONObject jsonBook) throws JSONException {
-        this.title = jsonBook.getString("title"); this.author = jsonBook.getString("author");
-        this.coverURL = jsonBook.getString("cover_url");
-        this.id = jsonBook.getInt("book_id"); this.published = jsonBook.getString("published");
+    public Book(int id, String title, String author, int published, String coverURL, int duration) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.published = published;
+        this.coverURL = coverURL;
+        this.duration = duration;
     }
 
-    protected Book(Parcel in) {
-        id = in.readInt();
-        title = in.readString();
-        author = in.readString();
-        coverURL = in.readString();
-        published = in.readString();
+    public Book(JSONObject jsonObject) throws JSONException {
+        this(jsonObject.getInt("book_id"),
+                jsonObject.getString("title"),
+                jsonObject.getString("author"),
+                jsonObject.getInt("published"),
+                jsonObject.getString("cover_url"),
+                jsonObject.getInt("duration"));
+    }
+
+    private Book(Parcel in) {
+        this.id = in.readInt();
+        this.title = in.readString();
+        this.author = in.readString();
+        this.published = in.readInt();
+        this.coverURL = in.readString();
+        this.duration = in.readInt();
     }
 
     public static final Creator<Book> CREATOR = new Creator<Book>() {
@@ -40,36 +56,12 @@ public class Book implements Parcelable {
         }
     };
 
-    //setters and getters
-    public void setId(int id) {
-
-        this.id = id;
-    }
-
-    public void setPublished(String published) {
-
-        this.published = published;
-    }
-
-    public void setTitle(String title) {
-
-        this.title = title;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public void setCoverURL(String coverURL) {
-        this.coverURL = coverURL;
-    }
-
     public int getId() {
         return id;
     }
 
-    public String getPublished() {
-        return published;
+    public int getDuration() {
+        return duration;
     }
 
     public String getTitle() {
@@ -80,16 +72,12 @@ public class Book implements Parcelable {
         return author;
     }
 
+    public int getPublished() {
+        return published;
+    }
+
     public String getCoverURL() {
         return coverURL;
-    }
-
-    public void setDuration(int duration){
-        this.duration = duration;
-    }
-
-    public int getDuration(){
-        return duration;
     }
 
     @Override
@@ -102,7 +90,9 @@ public class Book implements Parcelable {
         dest.writeInt(id);
         dest.writeString(title);
         dest.writeString(author);
+        dest.writeInt(published);
         dest.writeString(coverURL);
-        dest.writeString(published);
+        dest.writeInt(duration);
+
     }
 }

@@ -4,43 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BookDetailsFragment">
+    tools:context=".BookDetailsFragmentLandscape">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="visible">
+        android:orientation="vertical">
 
         <SeekBar
-            android:id="@+id/progressBar"
+            android:id="@+id/seekBarLandscape"
             android:layout_width="match_parent"
-            android:layout_height="52dp" />
+            android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/bookTitle"
+            android:id="@+id/bookTitleLandscape"
             android:layout_width="match_parent"
-            android:layout_height="47dp"
-            android:text="TextView" />
+            android:layout_height="30dp"
+            android:textSize="24sp" />
 
         <ImageView
-            android:id="@+id/bookCover"
+            android:id="@+id/bookCoverLandscape"
             android:layout_width="match_parent"
-            android:layout_height="323dp"
-            tools:src="@tools:sample/avatars" />
+            android:layout_height="144dp"
+            tools:src="@tools:sample/avatars[3]" />
 
-        <TextView
-            android:id="@+id/bookAuthor"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="39dp"
-            android:text="TextView" />
+            android:layout_height="32dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/bookPublishDate"
-            android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:text="TextView"
-            android:visibility="visible" />
+            <TextView
+                android:id="@+id/bookAuthorLandscape"
+                android:layout_width="224dp"
+                android:layout_height="match_parent"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/bookPublishDateLandscape"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="18sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -48,26 +52,25 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/pauseButton"
+                android:id="@+id/pauseButtonLandscape"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Pause" />
 
             <Button
-                android:id="@+id/playButton"
+                android:id="@+id/playButtonLandscape"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Play" />
 
             <Button
-                android:id="@+id/stopButton"
+                android:id="@+id/stopButtonLandscape"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Stop" />
         </LinearLayout>
     </LinearLayout>
-
 </FrameLayout>

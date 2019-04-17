@@ -1,196 +1,310 @@
 package com.example.bookcase;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-public class MainActivity extends AppCompatActivity implements BookListFragment.BookInterface, BookDetailsFragment.BookDetailsInterface {
+public class MainActivity extends AppCompatActivity implements BookListFragment.getBook, BookDetailsFragment.audioControl, BookDetailsFragmentLandscape.audioControlLandscape {
 
+    private boolean isTwoPane;
 
+    BookListFragment bookListFragment;
+    BookDetailsFragmentLandscape bookDetailsFragmentLandscape;
+    ViewPager viewPager;
 
-    boolean singlePane;
-    BookDetailsFragment detailsFragment;
-    ViewPagerFragment viewPagerFragment;
-    BookListFragment listFragment;
-    EditText searchText;
-    Button btnSearch;
-    JSONArray bookArray;
+    TextView searchBox;
+    Button searchButton;
+    TextView searchBoxLandscape;
+    Button searchButtonLandscape;
+    Book currentBook;
 
-    String searchWord;
-
-    ArrayList<Book> bookArrayList;
-
-    boolean isConnected;
+    AudiobookService audiobookService;
+    Intent playIntent;
+    boolean audioBound = false;
     AudiobookService.MediaControlBinder mediaControlBinder;
+    Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        searchText = findViewById(R.id.searchText);
-        btnSearch = findViewById(R.id.searchButton);
-        bookArrayList = new ArrayList<>();
+
+        isTwoPane = findViewById(R.id.bookListLandscape) != null;
+
+        if (isTwoPane) {
+
+            //Landscape mode
+            searchBoxLandscape = findViewById(R.id.searchBoxLandscape);
+            searchButtonLandscape = findViewById(R.id.searchButtonLandscape);
+            bookListFragment = new BookListFragment();
+            bookDetailsFragmentLandscape = new BookDetailsFragmentLandscape();
+
+            getSupportFragmentManager().beginTransaction().add(R.id.bookListLandscape, bookListFragment).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.bookDetailsLandscape, bookDetailsFragmentLandscape).commit();
+
+            playIntent = new Intent(this, AudiobookService.class);
+            startService(playIntent);
+
+            searchButtonLandscape.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Thread t2 = new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                String searchQueryLandscape = searchBoxLandscape.getText().toString();
+                                URL bookUrl = new URL("https://kamorris.com/lab/audlib/booksearch.php?search=" + searchQueryLandscape);
+
+                                BufferedReader reader = new BufferedReader(
+                                        new InputStreamReader(bookUrl.openStream()));
+
+                                String tmpResponse;
+                                StringBuilder responseBuilder = new StringBuilder();
+
+                                tmpResponse = reader.readLine();
+                                while (tmpResponse != null) {
+                                    responseBuilder.append(tmpResponse);
+                                    tmpResponse = reader.readLine();
+                                }
+                                reader.close();
+
+                                String response = responseBuilder.toString();
+                                JSONArray bookArray = new JSONArray(response);
+
+                                Message msg = Message.obtain();
+
+                                msg.obj = bookArray;
+                                bookResponseHandlerLandscape.sendMessage(msg);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    t2.start();
+
+                }
+            });
+
+            playIntent = new Intent(this, AudiobookService.class);
+            bindService(playIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+            handler = new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message msg) {
+                    bookDetailsFragmentLandscape.getSeekBarLandscape().setProgress(msg.what);
+                    Log.d("handler", Integer.toString(msg.what));
+                    return false;
+                }
+            });
 
 
-        singlePane = findViewById(R.id.container_2) == null;
-        detailsFragment = new BookDetailsFragment();
-        listFragment = new BookListFragment();
-        viewPagerFragment = new ViewPagerFragment();
 
-        bindService(new Intent(this, AudiobookService.class), serviceConnection, BIND_AUTO_CREATE);
-        if(!singlePane){
-            addFragment(listFragment, R.id.container_1);
-            addFragment(detailsFragment, R.id.container_2);
         } else {
-            addFragment(viewPagerFragment, R.id.container_3);
+            //Portrait mode
+            viewPager = findViewById(R.id.viewPager);
+            viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), new ArrayList<BookDetailsFragment>()));
+
+            searchBox = findViewById(R.id.searchBox);
+
+            searchButton = findViewById(R.id.searchButton);
+            searchButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Thread t = new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                String searchQuery = searchBox.getText().toString();
+                                URL bookUrl = new URL("https://kamorris.com/lab/audlib/booksearch.php?search=" + searchQuery);
+
+                                Log.d("URL check", bookUrl.toString());
+
+                                BufferedReader reader = new BufferedReader(
+                                        new InputStreamReader(bookUrl.openStream()));
+
+                                String tmpResponse;
+                                StringBuilder responseBuilder = new StringBuilder();
+
+                                tmpResponse = reader.readLine();
+                                while (tmpResponse != null) {
+                                    responseBuilder.append(tmpResponse);
+                                    tmpResponse = reader.readLine();
+                                }
+                                reader.close();
+
+                                String response = responseBuilder.toString();
+                                JSONArray bookArray = new JSONArray(response);
+
+                                Message msg = Message.obtain();
+                                msg.obj = bookArray;
+
+                                bookResponseHandler.sendMessage(msg);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    t.start();
+                }
+            });
+
+            playIntent = new Intent(this, AudiobookService.class);
+            bindService(playIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+            handler = new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message msg) {
+                    BookDetailsFragment bookDetailsFragment = (BookDetailsFragment) ((ViewPagerAdapter) viewPager.getAdapter()).getItem(viewPager.getCurrentItem());
+                    bookDetailsFragment.getProgressBar().setProgress(msg.what);
+                    Log.d("handler", Integer.toString(msg.what));
+                    return false;
+                }
+            });
+
         }
 
-
-        btnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchWord = searchText.getText().toString();
-
-                downloadBook(searchWord);
-
-            }
-        });
-        btnSearch.performClick();
     }
 
-    public void addFragment(Fragment fragment, int id){
-        getSupportFragmentManager().
-                beginTransaction().
-                replace(id, fragment).
-                addToBackStack(null).
-                commit();
-    }
+    Handler bookResponseHandler = new Handler(new Handler.Callback() {
 
-    public void downloadBook(final String search) {
-        new Thread() {
-            public void run() {
-                try {
-                    String urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + search;
-                    URL url = new URL(urlString);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                    StringBuilder builder = new StringBuilder();
-                    String tmpString;
-                    while ((tmpString = reader.readLine()) != null) {
-                        builder.append(tmpString);
-                    }
-                    Message msg = Message.obtain();
-                    msg.obj = builder.toString();
-                    urlHandler.sendMessage(msg);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }.start();
-    }
-
-    Handler urlHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+
+            ArrayList<Book> bookArrayList = new ArrayList<>();
+
+            JSONArray responseArray = (JSONArray) msg.obj;
+
             try {
-                bookArray = new JSONArray((String) msg.obj);
-            } catch (JSONException e) {
+                for (int i = 0; i < responseArray.length(); i++) {
+                    JSONObject jsonObject = responseArray.getJSONObject(i);
+                    bookArrayList.add(new Book(jsonObject));
+                    Log.d("check", jsonObject.getString("title"));
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            bookArrayList.clear();
+            setViewPagerAdapter(bookArrayList);
 
-            for(int i = 0; i<bookArray.length(); i++){
-                try{
-                    bookArrayList.add(new Book(bookArray.getJSONObject(i)));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-
-            if(singlePane) {
-                viewPagerFragment.addPager(bookArrayList);
-            } else {
-                listFragment.getBooks(bookArrayList);
-            }
             return false;
         }
     });
 
-    @Override
-    public void bookSelected(Book bookObj) {
-        detailsFragment.displayBook(bookObj);
-    }
+    Handler bookResponseHandlerLandscape = new Handler(new Handler.Callback() {
 
+        @Override
+        public boolean handleMessage(Message msg) {
+            ArrayList<Book> bookArrayList = new ArrayList<>();
 
-    ServiceConnection serviceConnection = new ServiceConnection() {
+            JSONArray responseArray = (JSONArray) msg.obj;
+
+            try {
+                for (int i = 0; i < responseArray.length(); i++) {
+                    currentBook = new Book((JSONObject) responseArray.get(i));
+                    bookArrayList.add(currentBook);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            updateViews(responseArray);
+
+            return false;
+        }
+    });
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mediaControlBinder = ((AudiobookService.MediaControlBinder) service);
-            isConnected = true;
+            audioBound = true;
+            mediaControlBinder = (AudiobookService.MediaControlBinder) service;
+            mediaControlBinder.setProgressHandler(handler);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            isConnected = false;
-            mediaControlBinder = null;
+            audioBound = false;
         }
     };
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(isConnected) {
-            unbindService(serviceConnection);
-            isConnected = false;
-        }
+    public void bookSelected(Book book) {
+        bookDetailsFragmentLandscape.setBook(book);
+        bookDetailsFragmentLandscape.displayBookName(book);
+
+    }
+
+    public void setViewPagerAdapter(ArrayList<Book> bookList) {
+        ((ViewPagerAdapter) viewPager.getAdapter()).addBooks(bookList);
+    }
+
+    public void updateViews(JSONArray jsonArray) {
+        bookListFragment.setJsonArray(jsonArray);
     }
 
 
     @Override
-    public void playBook(int id) {
-        mediaControlBinder.play(id);
-    }
-
-    @Override
-    public void pauseBook() {
+    public void pauseAudio() {
         mediaControlBinder.pause();
     }
 
     @Override
-    public void stopBook() {
+    public void playAudio(int bookId) {
+        mediaControlBinder.play(bookId);
+    }
+
+    @Override
+    public void stopAudio() {
         mediaControlBinder.stop();
     }
 
     @Override
-    public void seekBook(int position) {
+    public void seekToAudio(int position) {
         mediaControlBinder.seekTo(position);
     }
+
+
+    @Override
+    public void pauseAudioLandscape() {
+        mediaControlBinder.pause();
+    }
+
+    @Override
+    public void playAudioLandscape(int bookId) {
+        mediaControlBinder.play(bookId);
+    }
+
+    @Override
+    public void stopAudioLandscape() {
+        mediaControlBinder.stop();
+    }
+
+    @Override
+    public void seekToAudioLandscape(int position) {
+        mediaControlBinder.seekTo(position);
+    }
+
+
 }
