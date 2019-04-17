@@ -1,18 +1,19 @@
 <resources>
-    <string name="app_name">BookCase</string>
-    <string-array name="book_array">
-        <item>"The Witch Elm"</item>
-        <item>"How to Write an Autobiographical Novel"</item>
-        <item>"The Poisoned City"</item>
-        <item>"Warlight"</item>
-        <item>"That Kind of Mother"</item>
-        <item>"Killing Commendatore"</item>
-        <item>"Born to Be Posthumous"</item>
-        <item>"Infinite Jest"</item>
-        <item>"Substitudes"</item>
-        <item>"Chi's lab 7"</item>
+    <string translatable="false" name="app_name">BookCase</string>
+
+    <string-array name="bookArr">
+        <item>"Ender's Game</item>
+        <item>"My Brother Sam is Dead"</item>
+        <item>"The Martian"</item>
+        <item>"Among The Hidden"</item>
+        <item>"Ready Player One"</item>
+        <item>"One Flew Over The Cuckoo's Nest"</item>
+        <item>"The Book of Basketball"</item>
+        <item>"Fever 1793"</item>
+        <item>"The Road"</item>
+        <item>"Night"</item>
     </string-array>
 
-
-
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
