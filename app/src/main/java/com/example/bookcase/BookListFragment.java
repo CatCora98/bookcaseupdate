@@ -1,8 +1,8 @@
 package com.example.bookcase;
 
+
 import android.content.Context;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -11,13 +11,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,17 +22,24 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import edu.temple.audiobookplayer.AudiobookService;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
 public class BookListFragment extends Fragment {
 
     private BookInterface mListener;
 
-    public BookListFragment() {
+    AudiobookService.MediaControlBinder mediaControlBinder;
 
+    public BookListFragment() {
+        // Required empty public constructor
     }
 
     public static BookListFragment newInstance(String param1, String param2) {
@@ -73,15 +76,18 @@ public class BookListFragment extends Fragment {
         adapter = new BookAdapter(c, bookArr);
         adapter.notifyDataSetChanged();
         listView.setAdapter(adapter);
+
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 books = bookArr.get(position);
                 ((BookInterface) c).bookSelected(books);
             }
-        }
+        });
     }
 
+/* Functionality of updateList added to getBooks
     private void updateList(){
         adapter = new BookAdapter(c, bookList);
         adapter.notifyDataSetChanged();
@@ -95,6 +101,7 @@ public class BookListFragment extends Fragment {
             }
         });
     }
+    */
 
     @Override
     public void onAttach(Context context) {

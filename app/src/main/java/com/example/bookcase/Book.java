@@ -1,18 +1,17 @@
 package com.example.bookcase;
 
-
 import android.os.Parcel;
 import android.os.Parcelable;
-
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-
 public class Book implements Parcelable {
     private int id;
-    private String title, author, coverURL, published;
+    private String title;
+    private String author;
+    private String coverURL;
+    private String published;
     public int duration;
 
     public Book(JSONObject jsonBook) throws JSONException {
@@ -41,15 +40,19 @@ public class Book implements Parcelable {
         }
     };
 
+    //setters and getters
     public void setId(int id) {
+
         this.id = id;
     }
 
     public void setPublished(String published) {
+
         this.published = published;
     }
 
     public void setTitle(String title) {
+
         this.title = title;
     }
 
@@ -88,7 +91,6 @@ public class Book implements Parcelable {
     public int getDuration(){
         return duration;
     }
-
 
     @Override
     public int describeContents() {
